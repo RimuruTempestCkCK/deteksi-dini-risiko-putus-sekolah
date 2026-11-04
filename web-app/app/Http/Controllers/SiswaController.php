@@ -140,75 +140,102 @@ class SiswaController extends Controller
     public function importDapodik(Request $request)
     {
         $request->validate([
-            'file_excel' => 'required|file|mimes:xlsx,xls',
+            'file_excel' => 'required|file|max:51200', // support hingga 50MB
         ]);
 
-        $file = $request->file('file_excel');
-        $spreadsheet = IOFactory::load($file->getRealPath());
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
+        try {
+            $file = $request->file('file_excel');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
 
-        // Cari header row (biasanya pada baris ke-5 yang memiliki kolom NISN)
-        $headerRowIdx = -1;
-        foreach ($rows as $idx => $row) {
-            foreach ($row as $cell) {
-                if (is_string($cell) && strtolower(trim($cell)) === 'nisn') {
-                    $headerRowIdx = $idx;
-                    break 2;
+            // Cari header row (baris yang memiliki kolom NISN)
+            $headerRowIdx = -1;
+            foreach ($rows as $idx => $row) {
+                foreach ($row as $cell) {
+                    if (is_string($cell) && strtolower(trim($cell)) === 'nisn') {
+                        $headerRowIdx = $idx;
+                        break 2;
+                    }
                 }
             }
-        }
 
-        if ($headerRowIdx === -1) {
-            return back()->with('error', 'Format file tidak dikenali. Kolom NISN tidak ditemukan.');
-        }
-
-        $headers = array_map(fn($h) => strtolower(trim((string)$h)), $rows[$headerRowIdx]);
-        $nisnCol = array_search('nisn', $headers);
-        $namaCol = array_search('nama', $headers);
-        $nipdCol = array_search('nipd', $headers);
-        $jkCol = array_search('jk', $headers);
-        $rombelCol = array_search('rombel saat ini', $headers);
-        $kipCol = array_search('penerima kip', $headers);
-        $kpsCol = array_search('penerima kps', $headers);
-        $pipCol = array_search('layak pip (usulan dari sekolah)', $headers);
-        $jarakCol = array_search('jarak rumah ke sekolah (km)', $headers);
-
-        $imported = 0;
-        for ($i = $headerRowIdx + 1; $i < count($rows); $i++) {
-            $row = $rows[$i];
-            $nisn = trim((string)($row[$nisnCol] ?? ''));
-            $nama = trim((string)($row[$namaCol] ?? ''));
-
-            if (empty($nisn) || empty($nama)) continue;
-
-            $rombelName = $rombelCol !== false ? trim((string)($row[$rombelCol] ?? '')) : '';
-            $kelasId = null;
-            if ($rombelName) {
-                $kelas = Kelas::firstOrCreate(
-                    ['nama_kelas' => $rombelName, 'tahun_ajaran' => '2023/2024'],
-                    ['tingkat' => 'X', 'jurusan' => 'Umum']
-                );
-                $kelasId = $kelas->id;
+            if ($headerRowIdx === -1) {
+                return back()->with('error', 'Format file tidak dikenali. Kolom header NISN tidak ditemukan dalam file Excel.');
             }
 
-            Siswa::updateOrCreate(
-                ['nisn' => $nisn],
-                [
-                    'kelas_id' => $kelasId,
-                    'nipd' => $nipdCol !== false ? trim((string)($row[$nipdCol] ?? '')) : null,
-                    'nama_lengkap' => $nama,
-                    'jenis_kelamin' => ($jkCol !== false && strtoupper(trim((string)($row[$jkCol] ?? ''))) === 'P') ? 'P' : 'L',
-                    'is_penerima_kip' => ($kipCol !== false && strtolower(trim((string)($row[$kipCol] ?? ''))) === 'ya'),
-                    'is_penerima_kps' => ($kpsCol !== false && strtolower(trim((string)($row[$kpsCol] ?? ''))) === 'ya'),
-                    'is_layak_pip' => ($pipCol !== false && strtolower(trim((string)($row[$pipCol] ?? ''))) === 'ya'),
-                    'jarak_rumah_km' => $jarakCol !== false ? (float)($row[$jarakCol] ?? 0) : 0,
-                    'status_keaktifan' => 'Aktif',
-                ]
-            );
-            $imported++;
-        }
+            // Normalisasi teks header (hilangkan enter dan spasi berlebih)
+            $headers = array_map(function ($h) {
+                return strtolower(preg_replace('/\s+/', ' ', trim((string)$h)));
+            }, $rows[$headerRowIdx]);
 
-        return redirect()->route('siswa.index')->with('success', "Berhasil mengimpor {$imported} data siswa dari Dapodik.");
+            $nisnCol = array_search('nisn', $headers);
+            $namaCol = array_search('nama', $headers);
+            $nipdCol = array_search('nipd', $headers);
+            $jkCol = array_search('jk', $headers);
+            $tempatLahirCol = array_search('tempat lahir', $headers);
+            $tanggalLahirCol = array_search('tanggal lahir', $headers);
+            $alamatCol = array_search('alamat', $headers);
+            $transportCol = array_search('alat transportasi', $headers);
+            $rombelCol = array_search('rombel saat ini', $headers);
+            $kipCol = array_search('penerima kip', $headers);
+            $kpsCol = array_search('penerima kps', $headers);
+            $pipCol = array_search('layak pip (usulan dari sekolah)', $headers);
+            $jarakCol = array_search('jarak rumah ke sekolah (km)', $headers);
+            $saudaraCol = array_search('jml. saudara kandung', $headers);
+
+            $imported = 0;
+            for ($i = $headerRowIdx + 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+                $nisn = $nisnCol !== false ? trim((string)($row[$nisnCol] ?? '')) : '';
+                $nama = $namaCol !== false ? trim((string)($row[$namaCol] ?? '')) : '';
+
+                if (empty($nisn) || empty($nama)) continue;
+
+                $rombelName = $rombelCol !== false ? trim((string)($row[$rombelCol] ?? '')) : '';
+                $kelasId = null;
+                if ($rombelName) {
+                    $kelas = Kelas::firstOrCreate(
+                        ['nama_kelas' => $rombelName, 'tahun_ajaran' => '2023/2024'],
+                        ['tingkat' => 'X', 'jurusan' => 'Umum']
+                    );
+                    $kelasId = $kelas->id;
+                }
+
+                $tglLahir = null;
+                if ($tanggalLahirCol !== false && !empty($row[$tanggalLahirCol])) {
+                    $rawDate = trim((string)$row[$tanggalLahirCol]);
+                    $time = strtotime($rawDate);
+                    if ($time !== false) {
+                        $tglLahir = date('Y-m-d', $time);
+                    }
+                }
+
+                Siswa::updateOrCreate(
+                    ['nisn' => $nisn],
+                    [
+                        'kelas_id' => $kelasId,
+                        'nipd' => $nipdCol !== false ? trim((string)($row[$nipdCol] ?? '')) : null,
+                        'nama_lengkap' => $nama,
+                        'jenis_kelamin' => ($jkCol !== false && strtoupper(trim((string)($row[$jkCol] ?? ''))) === 'P') ? 'P' : 'L',
+                        'tempat_lahir' => $tempatLahirCol !== false ? trim((string)($row[$tempatLahirCol] ?? '')) : null,
+                        'tanggal_lahir' => $tglLahir,
+                        'alamat' => $alamatCol !== false ? trim((string)($row[$alamatCol] ?? '')) : null,
+                        'alat_transportasi' => $transportCol !== false ? trim((string)($row[$transportCol] ?? '')) : null,
+                        'is_penerima_kip' => ($kipCol !== false && strtolower(trim((string)($row[$kipCol] ?? ''))) === 'ya'),
+                        'is_penerima_kps' => ($kpsCol !== false && strtolower(trim((string)($row[$kpsCol] ?? ''))) === 'ya'),
+                        'is_layak_pip' => ($pipCol !== false && strtolower(trim((string)($row[$pipCol] ?? ''))) === 'ya'),
+                        'jarak_rumah_km' => $jarakCol !== false ? (float)($row[$jarakCol] ?? 0) : 0,
+                        'jml_saudara_kandung' => $saudaraCol !== false ? (int)($row[$saudaraCol] ?? 0) : 0,
+                        'status_keaktifan' => 'Aktif',
+                    ]
+                );
+                $imported++;
+            }
+
+            return redirect()->route('siswa.index')->with('success', "Berhasil mengimpor {$imported} data peserta didik dari Dapodik!");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal memproses berkas Excel: ' . $e->getMessage());
+        }
     }
 }
