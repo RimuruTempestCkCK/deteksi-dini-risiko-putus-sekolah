@@ -20,9 +20,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Modul Data Master Siswa
-    Route::resource('siswa', SiswaController::class);
     Route::post('/siswa/import-dapodik', [SiswaController::class, 'importDapodik'])->name('siswa.import');
-    Route::delete('/siswa/destroy-all', [SiswaController::class, 'destroyAll'])->name('siswa.destroy-all');
+    Route::match(['delete', 'post'], '/siswa/destroy-all', [SiswaController::class, 'destroyAll'])->name('siswa.destroy-all');
+    Route::resource('siswa', SiswaController::class);
 
     // Modul Nilai Rapor & Presensi
     Route::get('/nilai', [NilaiPresensiController::class, 'index'])->name('nilai.index');
