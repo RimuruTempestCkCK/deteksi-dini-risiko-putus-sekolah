@@ -139,6 +139,9 @@ class SiswaController extends Controller
      */
     public function importDapodik(Request $request)
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(300);
+
         $request->validate([
             'file_excel' => 'required|file|max:51200', // support hingga 50MB
         ]);
@@ -235,6 +238,7 @@ class SiswaController extends Controller
 
             return redirect()->route('siswa.index')->with('success', "Berhasil mengimpor {$imported} data peserta didik dari Dapodik!");
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Import Dapodik Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             return back()->with('error', 'Gagal memproses berkas Excel: ' . $e->getMessage());
         }
     }
