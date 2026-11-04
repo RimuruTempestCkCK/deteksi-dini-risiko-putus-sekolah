@@ -5,19 +5,29 @@
 @section('content')
 <div class="row">
   <div class="col-12 mb-4">
-    <div class="card bg-warning-subtle text-warning border-0 shadow-none">
+    <div class="card bg-primary-subtle border-0 shadow-none">
       <div class="card-body p-4">
         <div class="d-md-flex align-items-center justify-content-between">
           <div>
-            <h4 class="fw-bold mb-1 text-dark"><i class="ti ti-git-compare me-2"></i>Komparasi Algoritma Random Forest &amp; Naïve Bayes</h4>
-            <p class="mb-0 text-muted">Evaluasi performa klasifikasi menggunakan matriks Confusion Matrix (Akurasi, Presisi, Recall, dan F1-Score).</p>
+            <h4 class="fw-bold mb-1 text-dark"><i class="ti ti-git-compare me-2 text-primary"></i>Komparasi Algoritma Random Forest &amp; Naïve Bayes</h4>
+            <p class="mb-0 text-muted">Evaluasi performa klasifikasi menggunakan matriks Confusion Matrix (Akurasi, Presisi, Recall, dan F1-Score) pada pengujian split 80% Data Latih : 20% Data Uji.</p>
           </div>
-          <div class="mt-3 mt-md-0">
+          <div class="mt-3 mt-md-0 text-md-end">
             <span class="badge bg-primary px-3 py-2 fs-3">
               Rekomendasi Terbaik: <strong>{{ str_replace('_', ' ', $winner) }}</strong>
             </span>
           </div>
         </div>
+
+        @if(!empty($alasanRekomendasi))
+          <div class="mt-3 pt-3 border-top border-primary-subtle d-flex align-items-start gap-2">
+            <iconify-icon icon="solar:info-circle-bold" class="fs-5 text-primary flex-shrink-0 mt-1"></iconify-icon>
+            <div>
+              <strong class="text-dark d-block mb-1">Dasar &amp; Alasan Ilmiah Penentuan Model Terbaik:</strong>
+              <p class="mb-0 text-dark fs-3">{{ $alasanRekomendasi }}</p>
+            </div>
+          </div>
+        @endif
       </div>
     </div>
   </div>
