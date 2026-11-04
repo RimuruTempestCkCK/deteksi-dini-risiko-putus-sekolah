@@ -135,6 +135,31 @@ class SiswaController extends Controller
     }
 
     /**
+     * Hapus Semua Data Siswa beserta relasinya (Rapor, Prediksi, Intervensi, Fitur Dataset)
+     */
+    public function destroyAll()
+    {
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () {
+                \App\Models\TindakanIntervensi::truncate();
+                \App\Models\PrediksiLog::truncate();
+                \App\Models\FiturDataset::truncate();
+                \App\Models\RaporSemester::truncate();
+                
+                // Gunakan disable foreign key checks jika ada relasi cascade
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                \App\Models\Siswa::truncate();
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            });
+
+            return redirect()->route('siswa.index')->with('success', 'Semua data siswa berhasil dikosongkan/dihapus.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            return redirect()->route('siswa.index')->with('error', 'Gagal mengosongkan data: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Import Berkas Excel Dapodik (Daftar PD)
      */
     public function importDapodik(Request $request)

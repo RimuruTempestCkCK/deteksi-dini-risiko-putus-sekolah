@@ -12,7 +12,7 @@
             <h5 class="card-title fw-semibold">Master Data Peserta Didik</h5>
             <p class="card-subtitle mb-0">Kelola informasi demografi, sosio-ekonomi (KIP, KPS, PIP), dan profil peserta didik SMKN 1 Bungo</p>
           </div>
-          <div class="mt-3 mt-md-0 d-flex gap-2">
+          <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
             <!-- Modal Import Trigger -->
             <button type="button" class="btn btn-success d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalImportDapodik">
               <iconify-icon icon="solar:file-spreadsheet-linear" class="me-1 fs-5"></iconify-icon> Import Excel Dapodik
@@ -20,6 +20,10 @@
             <!-- Modal Create Trigger -->
             <button type="button" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
               <iconify-icon icon="solar:user-plus-rounded-linear" class="me-1 fs-5"></iconify-icon> Tambah Siswa
+            </button>
+            <!-- Modal Hapus Semua Trigger -->
+            <button type="button" class="btn btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalHapusSemuaSiswa">
+              <iconify-icon icon="solar:trash-bin-trash-bold" class="me-1 fs-5"></iconify-icon> Hapus Semua Data
             </button>
           </div>
         </div>
@@ -459,6 +463,35 @@
     </div>
   </div>
 </div>
+<!-- MODAL HAPUS SEMUA SISWA -->
+<div class="modal fade" id="modalHapusSemuaSiswa" tabindex="-1" aria-labelledby="modalHapusSemuaSiswaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <form action="{{ route('siswa.destroy-all') }}" method="POST">
+        @csrf
+        @method('DELETE')
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title fw-bold text-white" id="modalHapusSemuaSiswaLabel">
+            <iconify-icon icon="solar:danger-triangle-linear" class="me-1 fs-5"></iconify-icon> Konfirmasi Hapus Semua Data Siswa
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <div class="text-danger mb-3">
+            <iconify-icon icon="solar:trash-bin-trash-bold" style="font-size: 3.5rem;"></iconify-icon>
+          </div>
+          <h5 class="fw-bold text-dark">Apakah Anda yakin ingin mengosongkan seluruh data siswa?</h5>
+          <p class="text-muted fs-3 mb-0">Tindakan ini akan menghapus seluruh data siswa beserta riwayat nilai rapor, log prediksi, dan data intervensi terkait. Data yang telah dihapus tidak dapat dipulihkan.</p>
+        </div>
+        <div class="modal-footer bg-light justify-content-center">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batalkan</button>
+          <button type="submit" class="btn btn-danger btn-sm">Ya, Hapus Semua Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function() {
