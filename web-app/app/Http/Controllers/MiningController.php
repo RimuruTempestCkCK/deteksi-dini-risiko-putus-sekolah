@@ -50,14 +50,62 @@ class MiningController extends Controller
             $labels[] = $d->label_aktual ?? 'Rendah';
         }
 
-        $total = count($samples);
-        $trainCount = (int) round($total * $splitRatio);
+        // Stratified Split (80% Latih : 20% Uji) agar proporsi kelas Tinggi & Rendah terdistribusi seimbang
+        $tinggiData = [];
+        $rendahData = [];
 
-        $trainSamples = array_slice($samples, 0, $trainCount);
-        $trainLabels = array_slice($labels, 0, $trainCount);
+        foreach ($datasets as $d) {
+            $item = [
+                'sample' => [
+                    'rerata_nilai' => (float) $d->rerata_nilai,
+                    'mapel_dibawah_kkm' => (int) $d->mapel_dibawah_kkm,
+                    'jml_alfa' => (int) $d->jml_alfa,
+                    'jml_izin_sakit' => (int) $d->jml_izin_sakit,
+                    'kode_ekonomi' => (int) $d->kode_ekonomi,
+                    'jarak_km' => (float) $d->jarak_km,
+                    'jml_saudara' => (int) $d->jml_saudara,
+                ],
+                'label' => $d->label_aktual ?? 'Rendah',
+            ];
 
-        $testSamples = array_slice($samples, $trainCount);
-        $testLabels = array_slice($labels, $trainCount);
+            if ($item['label'] === 'Tinggi') {
+                $tinggiData[] = $item;
+            } else {
+                $rendahData[] = $item;
+            }
+        }
+
+        // Hitung split per strata
+        $trainTinggiCount = max(1, (int) round(count($tinggiData) * $splitRatio));
+        $trainRendahCount = max(1, (int) round(count($rendahData) * $splitRatio));
+
+        $trainSet = array_merge(
+            array_slice($tinggiData, 0, $trainTinggiCount),
+            array_slice($rendahData, 0, $trainRendahCount)
+        );
+
+        $testSet = array_merge(
+            array_slice($tinggiData, $trainTinggiCount),
+            array_slice($rendahData, $trainRendahCount)
+        );
+
+        // Jika testSet tidak memiliki sampel Tinggi, pinjam 1 sampel untuk verifikasi data uji
+        $hasTinggiInTest = false;
+        foreach ($testSet as $ts) {
+            if ($ts['label'] === 'Tinggi') {
+                $hasTinggiInTest = true;
+                break;
+            }
+        }
+        if (!$hasTinggiInTest && count($tinggiData) > 1) {
+            $testSet[] = array_pop($trainSet);
+        }
+
+        $trainSamples = array_column($trainSet, 'sample');
+        $trainLabels = array_column($trainSet, 'label');
+
+        $testSamples = array_column($testSet, 'sample');
+        $testLabels = array_column($testSet, 'label');
 
         $metricsService = new EvaluationMetricsService();
 
