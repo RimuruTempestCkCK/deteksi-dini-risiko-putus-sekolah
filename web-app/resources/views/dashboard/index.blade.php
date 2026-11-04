@@ -4,28 +4,18 @@
 
 @section('content')
 <div class="row">
-  <!-- Header Banner -->
+  <!-- Action Bar -->
   <div class="col-12 mb-4">
-    <div class="card bg-primary-subtle text-primary border-0 shadow-none">
-      <div class="card-body p-4">
-        <div class="d-md-flex align-items-center justify-content-between">
-          <div>
-            <h3 class="fw-bold mb-1 text-primary">Sistem Deteksi Dini Risiko Siswa Putus Sekolah</h3>
-            <p class="mb-0 text-dark">Komparasi Metode <strong>Random Forest</strong> &amp; <strong>Naïve Bayes</strong> di SMK Negeri 1 Bungo</p>
-          </div>
-          <div class="mt-3 mt-md-0 d-flex gap-2">
-            <form action="{{ route('prediksi.batch') }}" method="POST">
-              @csrf
-              <button type="submit" class="btn btn-primary d-flex align-items-center">
-                <i class="ti ti-scan me-1 fs-5"></i> Jalankan Deteksi Batch
-              </button>
-            </form>
-            <a href="{{ route('komparasi.index') }}" class="btn btn-outline-primary d-flex align-items-center">
-              <i class="ti ti-git-compare me-1 fs-5"></i> Cek Komparasi Model
-            </a>
-          </div>
-        </div>
-      </div>
+    <div class="d-flex justify-content-end gap-2">
+      <form action="{{ route('prediksi.batch') }}" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-primary d-flex align-items-center">
+          <i class="ti ti-scan me-1 fs-5"></i> Jalankan Deteksi Batch
+        </button>
+      </form>
+      <a href="{{ route('komparasi.index') }}" class="btn btn-outline-primary d-flex align-items-center">
+        <i class="ti ti-git-compare me-1 fs-5"></i> Cek Komparasi Model
+      </a>
     </div>
   </div>
 
