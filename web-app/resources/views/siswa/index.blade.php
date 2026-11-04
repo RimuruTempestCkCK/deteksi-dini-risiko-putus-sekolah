@@ -445,15 +445,35 @@
           <p class="text-muted fs-3 mb-3">Pilih berkas Excel (.xlsx / .xls) unduhan Dapodik (misal: <code>Daftar PD 23-24.xlsx</code>). Sistem akan membaca NISN, Nama, Rombel, status KIP/KPS/PIP, dan Jarak Rumah secara otomatis.</p>
           <div class="mb-3">
             <label for="file_excel" class="form-label fw-bold">Pilih File Excel:</label>
-            <input class="form-control" type="file" id="file_excel" name="file_excel" accept=".xlsx, .xls" required>
+            <input class="form-control" type="file" id="file_excel" name="file_excel" required>
           </div>
         </div>
         <div class="modal-footer bg-light">
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-success btn-sm">Mulai Import</button>
+          <button type="submit" class="btn btn-success btn-sm" id="btnSubmitImport">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="importSpinner" role="status" aria-hidden="true"></span>
+            <span id="importBtnText">Mulai Import</span>
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var formImport = document.querySelector('#modalImportDapodik form');
+    if (formImport) {
+      formImport.addEventListener('submit', function() {
+        var btn = document.getElementById('btnSubmitImport');
+        var spinner = document.getElementById('importSpinner');
+        var text = document.getElementById('importBtnText');
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        if (text) text.innerText = 'Mengimpor Data...';
+      });
+    }
+  });
+</script>
+@endpush
 @endsection
