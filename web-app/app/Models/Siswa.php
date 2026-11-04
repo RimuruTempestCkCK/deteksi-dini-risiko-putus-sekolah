@@ -33,6 +33,7 @@ class Siswa extends Model
     ];
 
     protected $casts = [
+        'tanggal_lahir' => 'date',
         'is_penerima_kps' => 'boolean',
         'is_penerima_kip' => 'boolean',
         'is_penerima_kks' => 'boolean',

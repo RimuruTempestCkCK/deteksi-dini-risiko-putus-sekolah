@@ -142,7 +142,7 @@
                             <p class="mb-2"><strong>NIPD:</strong> {{ $s->nipd ?? '-' }}</p>
                             <p class="mb-2"><strong>Kelas / Rombel:</strong> {{ $s->kelas->nama_kelas ?? '-' }} ({{ $s->kelas->jurusan ?? '-' }})</p>
                             <p class="mb-2"><strong>Jenis Kelamin:</strong> {{ $s->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</p>
-                            <p class="mb-2"><strong>Tempat, Tgl Lahir:</strong> {{ $s->tempat_lahir ?? '-' }}, {{ $s->tanggal_lahir ? $s->tanggal_lahir->format('d/m/Y') : '-' }}</p>
+                            <p class="mb-2"><strong>Tempat, Tgl Lahir:</strong> {{ $s->tempat_lahir ?? '-' }}, {{ $s->tanggal_lahir ? (\Carbon\Carbon::parse($s->tanggal_lahir)->format('d/m/Y')) : '-' }}</p>
                             <p class="mb-2"><strong>Alamat:</strong> {{ $s->alamat ?? '-' }}</p>
                             <p class="mb-2"><strong>Jarak ke Sekolah:</strong> {{ $s->jarak_rumah_km }} KM</p>
                             <p class="mb-0"><strong>Transportasi:</strong> {{ $s->alat_transportasi ?? '-' }}</p>
@@ -227,7 +227,7 @@
                             </div>
                             <div class="col-md-6">
                               <label class="form-label fw-bold">Tanggal Lahir</label>
-                              <input type="date" name="tanggal_lahir" class="form-control" value="{{ $s->tanggal_lahir ? $s->tanggal_lahir->format('Y-m-d') : '' }}">
+                              <input type="date" name="tanggal_lahir" class="form-control" value="{{ $s->tanggal_lahir ? (\Carbon\Carbon::parse($s->tanggal_lahir)->format('Y-m-d')) : '' }}">
                             </div>
                             <div class="col-12">
                               <label class="form-label fw-bold">Alamat</label>
