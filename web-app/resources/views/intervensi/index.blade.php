@@ -70,17 +70,54 @@
                     @endif
                   </td>
                   <td>
-                    <form action="{{ route('intervensi.status', $item->id) }}" method="POST" class="d-inline">
-                      @csrf
-                      @method('PATCH')
-                      <select name="status_intervensi" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
-                        <option value="Pending" {{ $item->status_intervensi == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="Dalam Pemantauan" {{ $item->status_intervensi == 'Dalam Pemantauan' ? 'selected' : '' }}>Dalam Pemantauan</option>
-                        <option value="Selesai/Aman" {{ $item->status_intervensi == 'Selesai/Aman' ? 'selected' : '' }}>Selesai/Aman</option>
-                      </select>
-                    </form>
+                    <div class="d-flex align-items-center gap-1">
+                      <!-- Tombol Modal Edit Intervensi -->
+                      <button type="button" class="btn btn-sm btn-warning text-white p-1" data-bs-toggle="modal" data-bs-target="#modalEditIntervensi{{ $item->id }}" title="Edit Intervensi">
+                        <iconify-icon icon="solar:pen-new-square-linear"></iconify-icon>
+                      </button>
+                    </div>
                   </td>
                 </tr>
+
+                <!-- MODAL EDIT STATUS INTERVENSI -->
+                <div class="modal fade" id="modalEditIntervensi{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                      <form action="{{ route('intervensi.status', $item->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header bg-warning-subtle">
+                          <h5 class="modal-title fw-bold text-dark">
+                            <iconify-icon icon="solar:pen-new-square-linear" class="me-1 fs-5 text-warning"></iconify-icon> Update Status: {{ $item->siswa->nama_lengkap ?? '-' }}
+                          </h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold">Jenis Tindakan:</label>
+                            <p class="mb-0 text-primary fw-semibold">{{ $item->jenis_tindakan }}</p>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-bold">Catatan Penanganan:</label>
+                            <p class="mb-0 text-muted fs-3">{{ $item->catatan_penanganan }}</p>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-bold">Pilih Status Penanganan Terbaru:</label>
+                            <select name="status_intervensi" class="form-select" required>
+                              <option value="Pending" {{ $item->status_intervensi == 'Pending' ? 'selected' : '' }}>Pending (Menunggu Jadwal)</option>
+                              <option value="Dalam Pemantauan" {{ $item->status_intervensi == 'Dalam Pemantauan' ? 'selected' : '' }}>Dalam Pemantauan</option>
+                              <option value="Selesai/Aman" {{ $item->status_intervensi == 'Selesai/Aman' ? 'selected' : '' }}>Selesai / Teratasi (Aman)</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                          <button type="submit" class="btn btn-primary btn-sm">Perbarui Status</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
               @empty
                 <tr>
                   <td colspan="7" class="text-center py-4 text-muted">Belum ada catatan intervensi.</td>
@@ -90,7 +127,7 @@
           </table>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-center">
           {{ $intervensis->links() }}
         </div>
       </div>

@@ -87,11 +87,52 @@
                   </td>
                   <td>{{ $p->tanggal_prediksi->format('d/m/Y') }}</td>
                   <td>
-                    <a href="{{ route('siswa.show', $p->siswa_id) }}" class="btn btn-sm btn-info">
-                      <i class="ti ti-eye"></i> Detail
-                    </a>
+                    <!-- Button Modal Detail Prediksi -->
+                    <button type="button" class="btn btn-sm btn-info text-white p-1" data-bs-toggle="modal" data-bs-target="#modalDetailPrediksi{{ $p->id }}" title="Detail Prediksi">
+                      <iconify-icon icon="solar:eye-linear"></iconify-icon>
+                    </button>
                   </td>
                 </tr>
+
+                <!-- MODAL DETAIL PREDIKSI -->
+                <div class="modal fade" id="modalDetailPrediksi{{ $p->id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                      <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold text-dark">
+                          <iconify-icon icon="solar:shield-warning-linear" class="me-1 fs-5 text-primary"></iconify-icon> Rincian Deteksi: {{ $p->siswa->nama_lengkap ?? '-' }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body p-4">
+                        <div class="text-center p-3 rounded mb-3 {{ $p->hasil_prediksi == 'Tinggi' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' }}">
+                          <span class="fs-2 text-uppercase fw-semibold d-block">Klasifikasi Sistem Cerdas</span>
+                          <h4 class="fw-bolder mb-1 {{ $p->hasil_prediksi == 'Tinggi' ? 'text-danger' : 'text-success' }}">
+                            RISIKO {{ strtoupper($p->hasil_prediksi) }}
+                          </h4>
+                          <span class="badge {{ $p->hasil_prediksi == 'Tinggi' ? 'bg-danger' : 'bg-success' }} fs-3">
+                            Probabilitas: {{ number_format($p->probabilitas_risiko * 100, 1) }}%
+                          </span>
+                        </div>
+                        <ul class="list-group list-group-flush border rounded mb-3">
+                          <li class="list-group-item d-flex justify-content-between"><span>NISN:</span><strong>{{ $p->siswa->nisn ?? '-' }}</strong></li>
+                          <li class="list-group-item d-flex justify-content-between"><span>Kelas:</span><strong>{{ $p->siswa->kelas->nama_kelas ?? '-' }}</strong></li>
+                          <li class="list-group-item d-flex justify-content-between"><span>Model Evaluasi:</span><strong>{{ str_replace('_', ' ', $p->modelEvaluasi->algoritma ?? 'Random Forest') }}</strong></li>
+                          <li class="list-group-item d-flex justify-content-between"><span>Tanggal Deteksi:</span><strong>{{ $p->tanggal_prediksi->format('d F Y') }}</strong></li>
+                        </ul>
+                        <div>
+                          <strong class="d-block mb-1 text-dark">Faktor Pemicu Risiko:</strong>
+                          <div class="p-3 bg-light rounded text-muted fs-3">
+                            {{ $p->faktor_kunci }}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               @empty
                 <tr>
                   <td colspan="8" class="text-center py-4 text-muted">Belum ada data log prediksi. Silakan jalankan deteksi batch.</td>
@@ -101,7 +142,7 @@
           </table>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-center">
           {{ $prediksis->links() }}
         </div>
       </div>

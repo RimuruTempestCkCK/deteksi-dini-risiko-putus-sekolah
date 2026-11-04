@@ -193,6 +193,58 @@ body {
   border-bottom: 1px solid #f1f4f9 !important;
 }
 
+/* Pagination Fix & Styling */
+.pagination {
+  margin-bottom: 0 !important;
+  gap: 4px !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination .page-item .page-link {
+  border-radius: 8px !important;
+  border: 1px solid #eaeff4 !important;
+  color: #4a5568 !important;
+  padding: 6px 12px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(93, 135, 255, 0.3) !important;
+}
+
+.pagination .page-item.disabled .page-link {
+  background-color: #f8fafc !important;
+  border-color: #eaeff4 !important;
+  color: #a0aec0 !important;
+}
+
+/* Sizing Icons in Table & Buttons agar proporsional dan tidak raksasa */
+.table .btn i,
+.table .btn iconify-icon,
+.btn-sm i,
+.btn-sm iconify-icon {
+  font-size: 1rem !important;
+  line-height: 1 !important;
+}
+
+.pagination svg,
+nav[role="navigation"] svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  display: inline-block !important;
+}
+
 /* 5. Responsive Styles */
 @media (max-width: 1199.98px) {
   .left-sidebar {

@@ -96,7 +96,7 @@
           </table>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-center">
           {{ $rapors->links() }}
         </div>
       </div>
