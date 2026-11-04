@@ -212,13 +212,57 @@ class SiswaController extends Controller
             $jarakCol = array_search('jarak rumah ke sekolah (km)', $headers);
             $saudaraCol = array_search('jml. saudara kandung', $headers);
 
+            // Deteksi kolom hierarki Data Ayah & Data Ibu (biasanya di baris ke-4 dan sub-header baris ke-5)
+            $pekerjaanAyahCol = 27; // Kolom AB bawaan Dapodik
+            $penghasilanAyahCol = 28; // Kolom AC bawaan Dapodik
+            $pekerjaanIbuCol = 33; // Kolom AH bawaan Dapodik
+            $penghasilanIbuCol = 34; // Kolom AI bawaan Dapodik
+
+            // Cari kolom Data Ayah & Data Ibu secara dinamis jika letak bergeser
+            $subHeaders = isset($rows[$headerRowIdx + 1]) ? $rows[$headerRowIdx + 1] : [];
+            $ayahStart = array_search('data ayah', $headers);
+            $ibuStart = array_search('data ibu', $headers);
+
+            if ($ayahStart !== false) {
+                for ($c = $ayahStart; $c < $ayahStart + 6; $c++) {
+                    $sub = strtolower(trim((string)($subHeaders[$c] ?? '')));
+                    if ($sub === 'pekerjaan') $pekerjaanAyahCol = $c;
+                    if ($sub === 'penghasilan') $penghasilanAyahCol = $c;
+                }
+            }
+
+            if ($ibuStart !== false) {
+                for ($c = $ibuStart; $c < $ibuStart + 6; $c++) {
+                    $sub = strtolower(trim((string)($subHeaders[$c] ?? '')));
+                    if ($sub === 'pekerjaan') $pekerjaanIbuCol = $c;
+                    if ($sub === 'penghasilan') $penghasilanIbuCol = $c;
+                }
+            }
+
+            // Parser penghasilan rentang Dapodik
+            $parsePenghasilan = function ($text): float {
+                if (empty($text)) return 0.0;
+                $t = strtolower(trim((string)$text));
+                if (strpos($t, 'tidak berpenghasilan') !== false) return 0.0;
+                if (strpos($t, 'kurang dari') !== false) return 400000.0;
+                if (strpos($t, '500') !== false && strpos($t, '999') !== false) return 750000.0;
+                if (strpos($t, '1,000') !== false || strpos($t, '1.000') !== false) return 1500000.0;
+                if (strpos($t, '2,000') !== false || strpos($t, '2.000') !== false) return 3000000.0;
+                if (strpos($t, '5,000') !== false || strpos($t, '5.000') !== false) return 7500000.0;
+                if (strpos($t, 'lebih dari') !== false || strpos($t, '20,000') !== false) return 20000000.0;
+                
+                $clean = preg_replace('/[^0-9]/', '', $text);
+                return !empty($clean) ? (float)$clean : 0.0;
+            };
+
             $imported = 0;
             for ($i = $headerRowIdx + 1; $i < count($rows); $i++) {
                 $row = $rows[$i];
                 $nisn = $nisnCol !== false ? trim((string)($row[$nisnCol] ?? '')) : '';
                 $nama = $namaCol !== false ? trim((string)($row[$namaCol] ?? '')) : '';
 
-                if (empty($nisn) || empty($nama)) continue;
+                // Lewati baris sub-header jika ada
+                if (empty($nisn) || empty($nama) || strtolower($nisn) === 'nisn' || strtolower($nama) === 'nama') continue;
 
                 $rombelName = $rombelCol !== false ? trim((string)($row[$rombelCol] ?? '')) : '';
                 $kelasId = null;
@@ -239,6 +283,13 @@ class SiswaController extends Controller
                     }
                 }
 
+                // Ekstraksi data pekerjaan dan penghasilan ortu
+                $pekAyah = $pekerjaanAyahCol !== false ? trim((string)($row[$pekerjaanAyahCol] ?? '')) : null;
+                $penghAyah = $penghasilanAyahCol !== false ? $parsePenghasilan($row[$penghasilanAyahCol] ?? '') : 0.0;
+
+                $pekIbu = $pekerjaanIbuCol !== false ? trim((string)($row[$pekerjaanIbuCol] ?? '')) : null;
+                $penghIbu = $penghasilanIbuCol !== false ? $parsePenghasilan($row[$penghasilanIbuCol] ?? '') : 0.0;
+
                 Siswa::updateOrCreate(
                     ['nisn' => $nisn],
                     [
@@ -250,6 +301,10 @@ class SiswaController extends Controller
                         'tanggal_lahir' => $tglLahir,
                         'alamat' => $alamatCol !== false ? trim((string)($row[$alamatCol] ?? '')) : null,
                         'alat_transportasi' => $transportCol !== false ? trim((string)($row[$transportCol] ?? '')) : null,
+                        'pekerjaan_ayah' => !empty($pekAyah) ? $pekAyah : null,
+                        'penghasilan_ayah' => $penghAyah,
+                        'pekerjaan_ibu' => !empty($pekIbu) ? $pekIbu : null,
+                        'penghasilan_ibu' => $penghIbu,
                         'is_penerima_kip' => ($kipCol !== false && strtolower(trim((string)($row[$kipCol] ?? ''))) === 'ya'),
                         'is_penerima_kps' => ($kpsCol !== false && strtolower(trim((string)($row[$kpsCol] ?? ''))) === 'ya'),
                         'is_layak_pip' => ($pipCol !== false && strtolower(trim((string)($row[$pipCol] ?? ''))) === 'ya'),
