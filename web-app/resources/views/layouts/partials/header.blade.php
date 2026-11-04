@@ -1,26 +1,15 @@
 <header class="app-header">
   <nav class="navbar navbar-expand navbar-light px-3 py-2 w-100 d-flex justify-content-between align-items-center">
     
-    <!-- Sisi Kiri Header: Toggle Mobile & Badge Sekolah -->
+    <!-- Sisi Kiri Header: Toggle Mobile -->
     <div class="d-flex align-items-center gap-2">
       <button class="nav-link sidebartoggler nav-icon-hover d-block d-xl-none p-1 border-0 bg-transparent cursor-pointer" id="headerCollapse" type="button">
         <i class="ti ti-menu-2 fs-6"></i>
       </button>
-
-      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-2 fw-semibold d-flex align-items-center">
-        <iconify-icon icon="solar:map-point-wave-linear" class="me-1 fs-4"></iconify-icon> SMK Negeri 1 Bungo - Jambi
-      </span>
-
-      <span class="badge bg-light text-muted px-3 py-2 rounded-pill fs-2 d-none d-md-inline-block">
-        Tahun Ajaran 2023/2024
-      </span>
     </div>
 
-    <!-- Sisi Kanan Header: Mode Single Admin & Profil Pengguna -->
+    <!-- Sisi Kanan Header: Profil Pengguna -->
     <div class="d-flex align-items-center gap-3">
-      <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fs-2 d-flex align-items-center">
-        <iconify-icon icon="solar:check-circle-bold" class="me-1 fs-3"></iconify-icon> Mode: Single Admin
-      </span>
 
       <!-- Dropdown Profil Admin -->
       <div class="dropdown">
