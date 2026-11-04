@@ -4,21 +4,6 @@
 
 @section('content')
 <div class="row">
-  <!-- Action Bar -->
-  <div class="col-12 mb-4">
-    <div class="d-flex justify-content-end gap-2">
-      <form action="{{ route('prediksi.batch') }}" method="POST">
-        @csrf
-        <button type="submit" class="btn btn-primary d-flex align-items-center">
-          <i class="ti ti-scan me-1 fs-5"></i> Jalankan Deteksi Batch
-        </button>
-      </form>
-      <a href="{{ route('komparasi.index') }}" class="btn btn-outline-primary d-flex align-items-center">
-        <i class="ti ti-git-compare me-1 fs-5"></i> Cek Komparasi Model
-      </a>
-    </div>
-  </div>
-
   <!-- KPI Cards -->
   <div class="col-sm-6 col-xl-3">
     <div class="card">
