@@ -75,6 +75,21 @@ body {
   padding: 0 !important;
 }
 
+.profile-btn {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.profile-btn:hover {
+  background-color: #f0f4ff;
+}
+
+.profile-btn span {
+  font-size: 0.92rem !important;
+  color: #1a202c !important;
+  font-weight: 700 !important;
+}
+
 .body-wrapper .body-wrapper-inner {
   margin-top: calc(var(--header-height) + 16px) !important;
   margin-left: 20px !important;
