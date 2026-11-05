@@ -1,0 +1,71 @@
+# Kerangka Penelitian
+
+1\. Identifikasi Masalah
+
+↓ 
+
+2\. Studi Literatur
+
+↓
+
+3\. Pengumpulan Data
+
+↓
+
+## 4. Proses Knowledge Discovery in Database (KDD)
+
+1. Data Selection
+2. Data Preprocessing
+3. Data Transformation
+4. Data Mining
+5. Evaluation
+
+↓
+
+5\. Pembagian Data (Data Latih dan Data Uji)
+
+↓
+
+## 6. Proses Random Forest
+
+1. Pelatihan Model Random Forest (data latih)
+2. Pembentukan Pohon Keputusan
+3. Pengujian Model (data uji)
+4. Hasil Prediksi Random Forest
+5. Evaluasi Random Forest
+   - Confusion Matrix
+   - Accuracy
+   - Precision
+   - Recall
+   - F1-Score
+
+## 7. Proses Naïve Bayes
+
+1. Pelatihan Model Naïve Bayes (data latih)
+2. Perhitungan Probabilitas
+3. Pengujian Model (data uji)
+4. Hasil Prediksi Naïve Bayes
+5. Evaluasi Naïve Bayes
+   - Confusion Matrix
+   - Accuracy
+   - Precision
+   - Recall
+   - F1-Score
+
+↓
+
+## 8. Analisis Perbandingan Hasil
+
+(Random Forest vs Naïve Bayes)
+
+↓
+
+9\. Pemilihan Model Terbaik
+
+↓
+
+10\. Implementasi Sistem
+
+↓
+
+11\. Kesimpulan dan Saran
