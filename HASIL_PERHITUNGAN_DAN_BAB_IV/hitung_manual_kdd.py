@@ -415,9 +415,16 @@ if __name__ == "__main__":
     # Jalankan pipeline KDD di konsol
     res = jalankan_pipeline_kdd("DATA_PENELITIAN-2023-2024.xlsx")
 
-    # Buka GUI interaktif jika dijalankan langsung di desktop
-    try:
-        if sys.stdout.isatty() or os.environ.get('DISPLAY') or sys.platform == 'win32':
+    # Flag argumen untuk membuka antarmuka GUI: --gui atau -gui
+    args = [a.lower().strip() for a in sys.argv[1:]]
+    buka_gui_flag = any(arg in ['--gui', '-gui', 'gui'] for arg in args)
+
+    if buka_gui_flag:
+        try:
             buka_gui(res)
-    except Exception as e:
-        print(f"\n[Info GUI]: Antarmuka grafis tidak dapat dimuat otomatis ({e}). Eksekusi CLI selesai.")
+        except Exception as e:
+            print(f"\n[Info GUI]: Gagal memuat antarmuka grafis: {e}")
+    else:
+        print("\n[Petunjuk GUI]: Untuk membuka tampilan grafis interaktif, jalankan:")
+        print("  python hitung_manual_kdd.py --gui")
+
