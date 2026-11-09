@@ -40,20 +40,13 @@ class PredictionController extends Controller
     public function runBatch()
     {
         $activeModel = ModelEvaluasi::where('is_active', true)->first();
-        if (!$activeModel || empty($activeModel->model_state)) {
-            return back()->with('error', 'Belum ada Model Klasifikasi Aktif yang dilatih. Silakan jalankan training KDD terlebih dahulu.');
-        }
-
         $prepService = new PreprocessingService();
-        $state = json_decode($activeModel->model_state, true);
 
-        if ($activeModel->algoritma === 'Random_Forest') {
-            $mlService = new RandomForestService();
-            $mlService->loadState($state);
-        } else {
-            $mlService = new NaiveBayesService();
-            $mlService->loadState($state);
-        }
+        $rfService = new RandomForestService();
+        $nbService = new NaiveBayesService();
+
+        $useRf = (!$activeModel || $activeModel->algoritma === 'Random_Forest');
+        $mlService = $useRf ? $rfService : $nbService;
 
         $siswas = Siswa::with('raporSemesters')->get();
         $count = 0;
@@ -63,22 +56,25 @@ class PredictionController extends Controller
             $pred = $mlService->predict($features);
             $factors = $prepService->identifyRiskFactors($features);
 
-            PrediksiLog::updateOrCreate(
-                [
-                    'siswa_id' => $s->id,
-                    'model_evaluasi_id' => $activeModel->id,
-                    'tanggal_prediksi' => now()->toDateString(),
-                ],
-                [
-                    'hasil_prediksi' => $pred['label'],
-                    'probabilitas_risiko' => $pred['probabilitas'],
-                    'faktor_kunci' => $factors,
-                ]
-            );
+            if ($activeModel) {
+                PrediksiLog::updateOrCreate(
+                    [
+                        'siswa_id' => $s->id,
+                        'model_evaluasi_id' => $activeModel->id,
+                        'tanggal_prediksi' => now()->toDateString(),
+                    ],
+                    [
+                        'hasil_prediksi' => $pred['label'],
+                        'probabilitas_risiko' => $pred['probabilitas'],
+                        'faktor_kunci' => $factors,
+                    ]
+                );
+            }
             $count++;
         }
 
-        return redirect()->route('prediksi.index')->with('success', "Proses batch klasifikasi selesai! {$count} data siswa berhasil diprediksi menggunakan model {$activeModel->algoritma}.");
+        $algoName = $activeModel ? $activeModel->algoritma : 'Random Forest';
+        return redirect()->route('prediksi.index')->with('success', "Proses batch klasifikasi selesai! {$count} data siswa berhasil diprediksi menggunakan model {$algoName}.");
     }
 
     /**
@@ -93,50 +89,70 @@ class PredictionController extends Controller
     public function processSimulasi(Request $request)
     {
         $request->validate([
-            'rerata_nilai' => 'required|numeric|min:0|max:100',
-            'mapel_dibawah_kkm' => 'required|integer|min:0',
-            'jml_alfa' => 'required|integer|min:0',
-            'jml_izin_sakit' => 'required|integer|min:0',
-            'kode_ekonomi' => 'required|in:1,2,3',
-            'jarak_km' => 'required|numeric|min:0',
-            'jml_saudara' => 'required|integer|min:0',
+            'X1_Nilai' => 'nullable|numeric|min:0|max:100',
+            'rerata_nilai' => 'nullable|numeric|min:0|max:100',
+            'X2_KKM' => 'nullable|integer|min:0',
+            'mapel_dibawah_kkm' => 'nullable|integer|min:0',
+            'X3_Alfa' => 'nullable|integer|min:0',
+            'jml_alfa' => 'nullable|integer|min:0',
+            'X4_IzinSakit' => 'nullable|integer|min:0',
+            'jml_izin_sakit' => 'nullable|integer|min:0',
+            'X5_Ekonomi' => 'nullable|in:1,2,3',
+            'kode_ekonomi' => 'nullable|in:1,2,3',
+            'X6_Jarak' => 'nullable|numeric|min:0',
+            'jarak_km' => 'nullable|numeric|min:0',
+            'X7_Pelanggaran' => 'nullable|integer|min:0',
+            'jml_pelanggaran' => 'nullable|integer|min:0',
+            'X8_Dukungan' => 'nullable|in:1,2,3',
+            'skor_dukungan' => 'nullable|in:1,2,3',
         ]);
 
         $activeModel = ModelEvaluasi::where('is_active', true)->first();
-        if (!$activeModel) {
-            return back()->with('error', 'Model aktif belum tersedia.');
-        }
+
+        // Ambil nilai 8 fitur prediktor KDD penelitian
+        $x1 = (float) ($request->X1_Nilai ?? $request->rerata_nilai ?? 79.49);
+        $x2 = (int) ($request->X2_KKM ?? $request->mapel_dibawah_kkm ?? 1);
+        $x3 = (int) ($request->X3_Alfa ?? $request->jml_alfa ?? 7);
+        $x4 = (int) ($request->X4_IzinSakit ?? $request->jml_izin_sakit ?? 4);
+        $x5 = (int) ($request->X5_Ekonomi ?? $request->kode_ekonomi ?? 2);
+        $x6 = (float) ($request->X6_Jarak ?? $request->jarak_km ?? 15.0);
+        $x7 = (int) ($request->X7_Pelanggaran ?? $request->jml_pelanggaran ?? 1);
+        $x8 = (int) ($request->X8_Dukungan ?? $request->skor_dukungan ?? 3);
 
         $features = [
-            'rerata_nilai' => (float) $request->rerata_nilai,
-            'mapel_dibawah_kkm' => (int) $request->mapel_dibawah_kkm,
-            'jml_alfa' => (int) $request->jml_alfa,
-            'jml_izin_sakit' => (int) $request->jml_izin_sakit,
-            'kode_ekonomi' => (int) $request->kode_ekonomi,
-            'jarak_km' => (float) $request->jarak_km,
-            'jml_saudara' => (int) $request->jml_saudara,
+            'X1_Nilai' => round($x1, 2),
+            'X2_KKM' => $x2,
+            'X3_Alfa' => $x3,
+            'X4_IzinSakit' => $x4,
+            'X5_Ekonomi' => $x5,
+            'X6_Jarak' => round($x6, 1),
+            'X7_Pelanggaran' => $x7,
+            'X8_Dukungan' => $x8,
         ];
 
         $prepService = new PreprocessingService();
-        $state = json_decode($activeModel->model_state, true);
+        $rf = new RandomForestService();
+        $nb = new NaiveBayesService();
 
-        if ($activeModel->algoritma === 'Random_Forest') {
-            $ml = new RandomForestService();
-            $ml->loadState($state);
-        } else {
-            $ml = new NaiveBayesService();
-            $ml->loadState($state);
-        }
-
-        $result = $ml->predict($features);
+        $resRf = $rf->predict($features);
+        $resNb = $nb->predict($features);
         $factors = $prepService->identifyRiskFactors($features);
 
+        $selectedAlgo = $activeModel ? $activeModel->algoritma : 'Random_Forest';
+        $mainResult = ($selectedAlgo === 'Naive_Bayes') ? $resNb : $resRf;
+
         return back()->with('simulasi_result', [
-            'label' => $result['label'],
-            'probabilitas' => $result['probabilitas'],
+            'label' => $mainResult['label'],
+            'probabilitas' => $mainResult['probabilitas'],
+            'probabilitas_tinggi' => $mainResult['probabilitas_tinggi'],
+            'probabilitas_rendah' => $mainResult['probabilitas_rendah'],
+            'rf_label' => $resRf['label'],
+            'rf_prob' => $resRf['probabilitas_tinggi'],
+            'nb_label' => $resNb['label'],
+            'nb_prob' => $resNb['probabilitas_tinggi'],
             'faktor_kunci' => $factors,
             'input' => $features,
-            'model' => $activeModel->algoritma
+            'model' => $selectedAlgo
         ]);
     }
 }

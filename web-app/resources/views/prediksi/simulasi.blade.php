@@ -12,8 +12,8 @@
             <iconify-icon icon="solar:calculator-minimalistic-linear" class="fs-6"></iconify-icon>
           </div>
           <div>
-            <h5 class="card-title fw-bold mb-0">Kalkulator Simulasi Risiko Siswa</h5>
-            <small class="text-muted">Uji inferensi model cerdas <strong>{{ str_replace('_', ' ', $activeModel->algoritma ?? 'Random Forest') }}</strong> secara real-time</small>
+            <h5 class="card-title fw-bold mb-0">Simulasi Deteksi Dini Risiko Siswa</h5>
+            <small class="text-muted">Komparasi Inferensi <strong>Random Forest (100 Trees)</strong> vs <strong>Naïve Bayes (Gaussian)</strong> (8 Fitur Prediktor)</small>
           </div>
         </div>
 
@@ -21,48 +21,58 @@
           @csrf
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">1. Rerata Nilai Rapor Semester</label>
-              <input type="number" step="0.1" name="rerata_nilai" class="form-control" value="{{ old('rerata_nilai', 72.5) }}" min="0" max="100" required>
-              <small class="text-muted">Skala 0 - 100</small>
+              <label class="form-label fw-bold">X1: Rerata Nilai Rapor</label>
+              <input type="number" step="0.01" name="X1_Nilai" class="form-control" value="{{ old('X1_Nilai', 79.49) }}" min="0" max="100" required>
+              <small class="text-muted">Skala 0.00 - 100.00 (Contoh D1: 79.49)</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">2. Mapel di Bawah KKM</label>
-              <input type="number" name="mapel_dibawah_kkm" class="form-control" value="{{ old('mapel_dibawah_kkm', 3) }}" min="0" required>
-              <small class="text-muted">Jumlah mata pelajaran</small>
+              <label class="form-label fw-bold">X2: Jumlah Mapel &lt; KKM</label>
+              <input type="number" name="X2_KKM" class="form-control" value="{{ old('X2_KKM', 1) }}" min="0" required>
+              <small class="text-muted">Jumlah mapel belum tuntas (Contoh D1: 1)</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">3. Ketidakhadiran Alfa</label>
-              <input type="number" name="jml_alfa" class="form-control" value="{{ old('jml_alfa', 12) }}" min="0" required>
-              <small class="text-muted">Hari tanpa keterangan</small>
+              <label class="form-label fw-bold">X3: Ketidakhadiran Alfa (Hari)</label>
+              <input type="number" name="X3_Alfa" class="form-control" value="{{ old('X3_Alfa', 7) }}" min="0" required>
+              <small class="text-muted">Presensi tanpa keterangan (Contoh D1: 7)</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">4. Izin + Sakit</label>
-              <input type="number" name="jml_izin_sakit" class="form-control" value="{{ old('jml_izin_sakit', 6) }}" min="0" required>
-              <small class="text-muted">Total hari izin &amp; sakit</small>
+              <label class="form-label fw-bold">X4: Ketidakhadiran Izin &amp; Sakit</label>
+              <input type="number" name="X4_IzinSakit" class="form-control" value="{{ old('X4_IzinSakit', 4) }}" min="0" required>
+              <small class="text-muted">Total hari sakit dan izin (Contoh D1: 4)</small>
             </div>
-            <div class="col-12">
-              <label class="form-label fw-bold">5. Tingkat Kondisi Finansial / Ekonomi</label>
-              <select name="kode_ekonomi" class="form-select" required>
-                <option value="1">Kode 1 - Rentan Finansial / Penerima KIP / Layak PIP</option>
-                <option value="2">Kode 2 - Menengah (Penghasilan 2 - 4 Juta)</option>
-                <option value="3">Kode 3 - Mampu / Cukup</option>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">X5: Status Ekonomi Keluarga</label>
+              <select name="X5_Ekonomi" class="form-select" required>
+                <option value="1" {{ old('X5_Ekonomi') == 1 ? 'selected' : '' }}>Kode 1 - Bansos (Penerima KPS / KIP / PIP)</option>
+                <option value="2" {{ old('X5_Ekonomi', 2) == 2 ? 'selected' : '' }}>Kode 2 - Rentan Finansial (&lt; Rp 1 Juta)</option>
+                <option value="3" {{ old('X5_Ekonomi') == 3 ? 'selected' : '' }}>Kode 3 - Mampu / Mandiri (&gt;= Rp 1 Juta)</option>
               </select>
+              <small class="text-muted">Kategori sosio-ekonomi keluarga</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">6. Jarak Rumah ke Sekolah (KM)</label>
-              <input type="number" step="0.1" name="jarak_km" class="form-control" value="{{ old('jarak_km', 16.5) }}" min="0" required>
-              <small class="text-muted">Dalam satuan kilometer</small>
+              <label class="form-label fw-bold">X6: Jarak Rumah ke Sekolah (KM)</label>
+              <input type="number" step="0.1" name="X6_Jarak" class="form-control" value="{{ old('X6_Jarak', 15.0) }}" min="0" required>
+              <small class="text-muted">Jarak geografis (Contoh D1: 15.0 KM)</small>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">7. Tanggungan / Saudara Kandung</label>
-              <input type="number" name="jml_saudara" class="form-control" value="{{ old('jml_saudara', 4) }}" min="0" required>
-              <small class="text-muted">Jumlah anak / saudara</small>
+              <label class="form-label fw-bold">X7: Pelanggaran Disiplin Siswa</label>
+              <input type="number" name="X7_Pelanggaran" class="form-control" value="{{ old('X7_Pelanggaran', 1) }}" min="0" required>
+              <small class="text-muted">Catatan kasus tata tertib (Contoh D1: 1)</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">X8: Skor Dukungan &amp; Ekskul</label>
+              <select name="X8_Dukungan" class="form-select" required>
+                <option value="1" {{ old('X8_Dukungan') == 1 ? 'selected' : '' }}>Skor 1 - Stabil (Dukungan Baik &amp; Ekskul Aktif)</option>
+                <option value="2" {{ old('X8_Dukungan') == 2 ? 'selected' : '' }}>Skor 2 - Perhatian (Salah Satu Kurang/Pasif)</option>
+                <option value="3" {{ old('X8_Dukungan', 3) == 3 ? 'selected' : '' }}>Skor 3 - Rentan Tinggi (Kurang &amp; Tidak Aktif)</option>
+              </select>
+              <small class="text-muted">Interaksi dukungan wali &amp; kegiatan sekolah</small>
             </div>
           </div>
 
           <div class="mt-4 pt-2">
             <button type="submit" class="btn btn-primary w-100 py-2 fs-4 fw-semibold d-flex align-items-center justify-content-center">
-              <iconify-icon icon="solar:round-alt-arrow-right-linear" class="me-2 fs-5"></iconify-icon> Jalankan Simulasi Prediksi
+              <iconify-icon icon="solar:round-alt-arrow-right-linear" class="me-2 fs-5"></iconify-icon> Jalankan Simulasi Prediksi (RF &amp; NB)
             </button>
           </div>
         </form>
@@ -79,95 +89,76 @@
       <div class="modal-content border-0 shadow-lg">
         <div class="modal-header {{ $res['label'] == 'Tinggi' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' }}">
           <h5 class="modal-title fw-bold" id="modalHasilSimulasiLabel">
-            <iconify-icon icon="solar:chart-square-linear" class="me-2 fs-5"></iconify-icon> Hasil Analisis Simulasi
+            <iconify-icon icon="solar:chart-square-linear" class="me-2 fs-5"></iconify-icon> Hasil Analisis Simulasi Siswa
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4">
-          <!-- Card Status Risiko Utama -->
-          <div class="alert {{ $res['label'] == 'Tinggi' ? 'alert-danger border-danger' : 'alert-success border-success' }} p-3 mb-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <span class="fs-4 fw-bold">Tingkat Risiko:</span>
-              <span class="badge {{ $res['label'] == 'Tinggi' ? 'bg-danger' : 'bg-success' }} fs-5 px-3 py-2">
-                {{ $res['label'] }}
-              </span>
-            </div>
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <span class="fs-3 text-muted">Probabilitas Terhitung:</span>
-              <span class="fs-4 fw-bolder">{{ number_format($res['probabilitas'] * 100, 1) }}%</span>
-            </div>
-            <hr class="my-2">
-            <div>
-              <strong>Faktor Kunci yang Teridentifikasi:</strong>
-              <p class="mb-0 mt-1 fs-3">{{ $res['faktor_kunci'] }}</p>
-            </div>
-          </div>
-
-          <!-- Parameter Masukan yang Diuji -->
-          <h6 class="fw-bold mb-2 text-dark">Parameter Masukan yang Diuji:</h6>
-          <div class="row g-2 mb-3">
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Rerata Nilai:</span>
-                <strong>{{ $res['input']['rerata_nilai'] }}</strong>
+          <!-- Card Komparasi Random Forest vs Naïve Bayes -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="p-3 rounded border {{ $res['rf_label'] == 'Tinggi' ? 'border-danger bg-danger-subtle' : 'border-success bg-success-subtle' }}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold">Random Forest (Ensemble):</span>
+                  <span class="badge {{ $res['rf_label'] == 'Tinggi' ? 'bg-danger' : 'bg-success' }}">
+                    RISIKO {{ strtoupper($res['rf_label']) }}
+                  </span>
+                </div>
+                <div class="small">
+                  Probabilitas Risiko: <strong>{{ number_format($res['rf_prob'] * 100, 2) }}%</strong>
+                </div>
               </div>
             </div>
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Mapel &lt; KKM:</span>
-                <strong>{{ $res['input']['mapel_dibawah_kkm'] }}</strong>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Ketidakhadiran Alfa:</span>
-                <strong>{{ $res['input']['jml_alfa'] }} hari</strong>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Izin + Sakit:</span>
-                <strong>{{ $res['input']['jml_izin_sakit'] }} hari</strong>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Status Ekonomi:</span>
-                <strong>Kode {{ $res['input']['kode_ekonomi'] }}</strong>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Jarak Rumah:</span>
-                <strong>{{ $res['input']['jarak_km'] }} KM</strong>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="p-2 border rounded bg-light d-flex justify-content-between">
-                <span class="text-muted">Jml Saudara:</span>
-                <strong>{{ $res['input']['jml_saudara'] }} orang</strong>
+            <div class="col-md-6">
+              <div class="p-3 rounded border {{ $res['nb_label'] == 'Tinggi' ? 'border-danger bg-danger-subtle' : 'border-success bg-success-subtle' }}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold">Naïve Bayes (Gaussian):</span>
+                  <span class="badge {{ $res['nb_label'] == 'Tinggi' ? 'bg-danger' : 'bg-success' }}">
+                    RISIKO {{ strtoupper($res['nb_label']) }}
+                  </span>
+                </div>
+                <div class="small">
+                  Probabilitas Risiko: <strong>{{ number_format($res['nb_prob'] * 100, 2) }}%</strong>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="text-end">
-            <small class="text-muted">Dianalisis menggunakan Model: <strong>{{ str_replace('_', ' ', $res['model']) }}</strong></small>
+          <!-- Faktor Kunci & Rekomendasi -->
+          <div class="mb-3">
+            <h6 class="fw-bold text-dark"><iconify-icon icon="solar:danger-triangle-linear" class="text-warning me-1"></iconify-icon> Faktor Pemicu Utama:</h6>
+            <div class="p-3 bg-light rounded text-muted">
+              {{ $res['faktor_kunci'] }}
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <h6 class="fw-bold text-dark"><iconify-icon icon="solar:shield-warning-linear" class="text-primary me-1"></iconify-icon> Rekomendasi Tindakan Intervensi:</h6>
+            <div class="p-3 rounded {{ ($res['rf_label'] == 'Tinggi' || $res['nb_label'] == 'Tinggi') ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' }}">
+              @if($res['rf_label'] == 'Tinggi' || $res['nb_label'] == 'Tinggi')
+                <strong>Peringatan Dini!</strong> Siswa terindikasi memiliki risiko tinggi putus sekolah. Segera jadwalkan konseling BK, monitoring presensi harian, dan koordinasi home-visit dengan orang tua siswa.
+              @else
+                <strong>Kondisi Aman!</strong> Profil akademik dan kedisiplinan siswa stabil. Tetap pertahankan monitoring berkala rutin tiap semester.
+              @endif
+            </div>
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
         </div>
       </div>
     </div>
   </div>
-
-  @push('scripts')
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var modalHasil = new bootstrap.Modal(document.getElementById('modalHasilSimulasi'));
-      modalHasil.show();
-    });
-  </script>
-  @endpush
 @endif
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    @if(session('simulasi_result'))
+      var myModal = new bootstrap.Modal(document.getElementById('modalHasilSimulasi'));
+      myModal.show();
+    @endif
+  });
+</script>
+@endpush
